@@ -1,0 +1,176 @@
+suppressMessages(suppressWarnings(library("fgsea", character.only=T, warn.conflicts = F, quietly = T)))
+suppressMessages(suppressWarnings(library("dplyr", character.only=T, warn.conflicts = F, quietly = T)))
+suppressMessages(suppressWarnings(library("rjson", character.only=T, warn.conflicts = F, quietly = T)))
+
+# args from command line:
+args<-commandArgs(TRUE)
+
+# the results of a differential gene expression analysis.
+# We expect a column giving the log fold change, named "logFC"
+# and a p-value column named "pval".
+# The first column has the gene identifiers/symbols
+# The file SHOULD have a header line
+DGE_RESULTS_FILE <- args[1]
+
+# a table which maps gene symbols to entrez IDs
+# Includes 'ALIAS', 'SYMBOL', 'ENSEMBL', 'ENTREZID'
+GENE_MAPPING_FILE <- args[2]
+
+# a GMT-format file with the pathways:
+GMT_PATHWAYS_FILE <- args[3]
+
+# the "type" of gene identifier
+GENE_ID_TYPE <- tolower(args[4])
+
+# change the working directory to co-locate with the counts file:
+working_dir <- dirname(DGE_RESULTS_FILE)
+setwd(working_dir)
+
+# load the data:
+dge_df = read.table(DGE_RESULTS_FILE, stringsAsFactors=F, header=T, row.names=1)
+
+# assert that the expected columns are there:
+missingCol <- function(df, col){
+    return(!(col %in% colnames(df)))
+}
+if (missingCol(dge_df, 'logFC')){
+    message('We require a column named "LogFC" in the input matrix.')
+    quit(status=1)
+}
+if (missingCol(dge_df, 'pval')){
+    message('We require a column named "pval" in the input matrix.')
+    quit(status=1)
+}
+
+# make a symbol column from the row index:
+dge_df$symbol = rownames(dge_df)
+
+# drop any NA's
+dge_df = dge_df[complete.cases(dge_df[,c('logFC','pval')]),]
+
+# calculate the ranking value-- this is the -log10(p-value)*sgn(lfc)
+dge_df$rnk = -log10(dge_df$pval)*sign(dge_df$logFC)
+
+# subset the dataframe:
+dge_df = dge_df[c('symbol','rnk')]
+
+# read the dataframe which contains the gene mapping info:
+gene_info_df = read.table(GENE_MAPPING_FILE)
+
+if(GENE_ID_TYPE == 'symbol'){
+    chosen_col = 'ALIAS'
+} else if(GENE_ID_TYPE == 'ensembl'){
+    chosen_col = 'ENSEMBL'
+} else if(GENE_ID_TYPE == 'entrez'){
+    chosen_col = 'ENTREZID'
+} else {
+    message('Could not understand which gene identifier to map from.')
+    quit(status=1)
+}
+
+
+# merge to keep only those
+dge_df = merge(
+    dge_df, gene_info_df[,c(chosen_col, 'ENTREZID')], by.x=0, by.y=chosen_col)
+
+# If no remaining rows, error out
+if(dim(dge_df)[1] == 0){
+    message('After mapping the gene identifiers, there were no remaining rows. Was the choice of gene identifier correct?')
+    quit(status=1)
+}
+
+dge_df = dge_df[,c('symbol', 'rnk', 'ENTREZID')]
+
+# drop those without an entrez ID
+dge_df <- dge_df[!unlist(lapply(dge_df$ENTREZID, is.null)),]
+
+# remove duplicate entrez ID:
+dge_df <- distinct(dge_df, ENTREZID, .keep_all=T)
+
+# list of the stats named by the entrez ID
+# e.g.:
+# > head(stats)
+#           1      503538       29974           2      144571      144568 
+# -8.73494743  0.09858084 -0.19662542  0.07469280  1.21432723  0.98991642
+stats = setNames(dge_df[,'rnk'], dge_df[,'ENTREZID'])
+
+pathways = gmtPathways(GMT_PATHWAYS_FILE)
+fgseaRes <- fgsea(pathways = pathways, 
+                  stats    = stats,
+                  minSize  = 15,
+                  maxSize  = 500)
+
+if (dim(fgseaRes)[1] == 0){
+    message('The table of gsea results was empty. Could be due to small gene sets not passing the minimum size threshold.')
+    quit(status=1)
+}
+
+# for the front-end, we would like to display the GSEA "rug plot" where we show
+# the location of a single pathway's genes in the ranked list.
+# rnk gives the order, with the negative sign putting the largest positive 
+# stats at the top of the list.
+# For example:
+# > dummyRanks = c("A"=5.5, "B"=-0.2, "C"=3.3, "D"=-3.6, "E"=1.1)
+# > dummyRanks
+#    A    B    C    D    E 
+#  5.5 -0.2  3.3 -3.6  1.1 
+# > rnk = rank(-dummyRanks)
+# > rnk
+# A B C D E 
+# 1 4 2 5 3
+# Then, given a pathway (e.g. with genes A and D), we get 
+rnk <- rank(-stats)
+
+# runs through all the pathways and gets the rank of that pathway's genes
+# in the whole ranked list.
+# For example,
+# > pathway_ranks
+# $`186574_Endocrine-committed_Ngn3+_progenitor_cells`
+# [1] 3887 4228
+#
+# $`1368092_Rora_activates_gene_expression`
+# [1] 9311 9005 1805 7229 8473
+#
+# For the first pathway, it has genes with entrezID of 
+# [1] "18012" "18088" "18506" "53626"
+# Only two of those were found in the ranked list based on the DGE results.
+# Those genes (18088, 18506) were found at positions/ranks 3887 and 4228
+pathway_ranks <- do.call(rbind, lapply(pathways, function(p) {
+    list(ranks=sort(unname(as.vector(na.omit(rnk[p])))))
+}))
+
+# merge the fgsea results with the ranks
+m = merge(as.data.frame(fgseaRes), pathway_ranks, by.x='pathway', by.y=0)
+
+# the ranks and leadingEdge columns are exported strangely to JSON
+# if we use `m` directly. Create a list structure to use for export.
+q = apply(
+    m,
+    1,
+    function(r){
+        list(
+            pathway=r$pathway, 
+            pval=r$pval, 
+            padj=r$padj, 
+            log2err=r$log2err,
+            ES=r$ES,
+            NES=r$NES,
+            size=r$size,
+            ranks=r$ranks, 
+            leadingEdge=r$leadingEdge
+        )
+    }
+)
+
+# reformat the table as a json string and write to file
+results_json_str <- toJSON(q)
+output_filename = 'fgsea_results_demo.json'
+results_json_file <- paste(working_dir, output_filename, sep='/')
+write(results_json_str, results_json_file)
+
+# for WebMEV compatability, need to create an outputs.json file.
+json_str = paste0(
+       '{"pathway_results":"', results_json_file, '"}'
+)
+output_json <- paste(working_dir, 'outputs.json', sep='/')
+write(json_str, output_json)

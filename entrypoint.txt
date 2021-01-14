@@ -1,0 +1,1 @@
+/opt/software/run.sh {{dge_results}} {{organism}} {{gene_id_choice}}

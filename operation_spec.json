@@ -1,0 +1,46 @@
+{
+    "name": "Fast Gene Set Enrichment Analysis (fgsea)", 
+    "description": "Execute gene set enrichment analysis following a differential expression analysis.", 
+    "inputs": {
+        "dge_results": {
+            "description": "A table of diffential expression results. Must have \"logFC\" and \"pval\" columns to rank the hits.", 
+            "name": "Differential expression results:", 
+            "required": true, 
+            "spec": {
+                "attribute_type": "DataResource", 
+                "resource_types": ["FT"], 
+                "many": false
+            }
+        }, 
+        "organism": {
+            "description": "The organism/genome for your results.", 
+            "name": "Genome/organism:", 
+            "required": true, 
+            "spec": {
+                "attribute_type": "OptionString",
+                "options": ["Human", "Mouse"]
+            }
+        },
+        "gene_id_choice": {
+            "description": "The type of identifier for your genes. If it's the \"common\" name, then choose \"Symbol\".", 
+            "name": "Gene ID type:", 
+            "required": true, 
+            "spec": {
+                "attribute_type": "OptionString",
+                "options": ["Symbol", "Entrez", "Ensembl"],
+                "default": "Symbol"
+            }
+        }
+    }, 
+    "outputs": {
+        "pathway_results": {
+            "spec": {
+                "attribute_type": "DataResource", 
+                "resource_type": "JSON",
+                "many": false
+            }
+        }
+    }, 
+    "mode": "local_docker",
+    "workspace_operation": true
+}
