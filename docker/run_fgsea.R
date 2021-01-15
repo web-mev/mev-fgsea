@@ -27,12 +27,7 @@ working_dir <- dirname(DGE_RESULTS_FILE)
 setwd(working_dir)
 
 # load the data:
-dge_df = read.table(DGE_RESULTS_FILE, \
-    sep = '\t', \
-    stringsAsFactors=F, \
-    header=T, \
-    row.names=1
-)
+dge_df = read.table(DGE_RESULTS_FILE, sep = '\t', stringsAsFactors=F, header=T, row.names=1)
 
 # assert that the expected columns are there:
 missingCol <- function(df, col){
