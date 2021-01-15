@@ -33,23 +33,43 @@ dge_df = read.table(DGE_RESULTS_FILE, sep = '\t', stringsAsFactors=F, header=T, 
 missingCol <- function(df, col){
     return(!(col %in% colnames(df)))
 }
-if (missingCol(dge_df, 'logFC')){
-    message('We require a column named "LogFC" in the input matrix.')
+LOG_2_FC = 'log2FoldChange'
+LOG_FC = 'logFC'
+PVAL = 'pval'
+PVALUE = 'pvalue'
+
+if (missingCol(dge_df, LOG_2_FC) & missingCol(dge_df, LOG_FC)){
+    message('We require a column named "log2FoldChange" or "logFC" in the input matrix.')
     quit(status=1)
 }
-if (missingCol(dge_df, 'pval')){
-    message('We require a column named "pval" in the input matrix.')
+if (missingCol(dge_df, PVAL) & missingCol(dge_df, PVALUE)){
+    message('We require a column named "pval" or "pvalue" in the input matrix.')
     quit(status=1)
 }
+
+# figure out which column has the fold change
+if (LOG_2_FC %in% colnames(dge_df)){
+    fc_col_num = which(colnames(dge_df) == LOG_2_FC)
+} else {
+    fc_col_num = which(colnames(dge_df) == LOG_FC)
+}
+
+# figure out which column has the p-value
+if (PVAL %in% colnames(dge_df)){
+    pval_col_num = which(colnames(dge_df) == PVAL)
+} else {
+    pval_col_num = which(colnames(dge_df) == PVALUE)
+}
+
 
 # make a symbol column from the row index:
 dge_df$symbol = rownames(dge_df)
 
 # drop any NA's
-dge_df = dge_df[complete.cases(dge_df[,c('logFC','pval')]),]
+dge_df = dge_df[complete.cases(dge_df[,c(fc_col_num, pval_col_num)]),]
 
 # calculate the ranking value-- this is the -log10(p-value)*sgn(lfc)
-dge_df$rnk = -log10(dge_df$pval)*sign(dge_df$logFC)
+dge_df$rnk = -log10(dge_df[,pval_col_num])*sign(dge_df[,fc_col_num])
 
 # subset the dataframe:
 dge_df = dge_df[c('symbol','rnk')]
