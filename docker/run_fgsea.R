@@ -77,22 +77,31 @@ dge_df = dge_df[c('symbol','rnk')]
 # read the dataframe which contains the gene mapping info:
 gene_info_df = read.table(GENE_MAPPING_FILE)
 
+
 if(GENE_ID_TYPE == 'symbol'){
+    # note that when we map back at the end, we use the symbol column
+    # since the many:1 mapping of alias to entrez causes problems.    
     chosen_col = 'ALIAS'
+    remap_col = 'SYMBOL'
 } else if(GENE_ID_TYPE == 'ensembl'){
     chosen_col = 'ENSEMBL'
+    remap_col = 'ENSEMBL'
 } else if(GENE_ID_TYPE == 'entrez'){
     chosen_col = 'ENTREZID'
+    remap_col = 'ENTREZID'
 } else {
     message('Could not understand which gene identifier to map from.')
     quit(status=1)
 }
 
-
-# merge to keep only those
+# merge to keep only those where we have a mapping:
+if (chosen_col != 'ENTREZID') {
 dge_df = merge(
     dge_df, gene_info_df[,c(chosen_col, 'ENTREZID')], by.x=0, by.y=chosen_col)
-
+} else {
+    dge_df['ENTREZID'] = rownames(dge_df)
+}
+print(head(dge_df))
 # If no remaining rows, error out
 if(dim(dge_df)[1] == 0){
     message('After mapping the gene identifiers, there were no remaining rows. Was the choice of gene identifier correct?')
@@ -164,10 +173,17 @@ m = merge(as.data.frame(fgseaRes), pathway_ranks, by.x='pathway', by.y=0)
 
 # the ranks and leadingEdge columns are exported strangely to JSON
 # if we use `m` directly. Create a list structure to use for export.
+
+# want to re-map back to the original symbols, as the leadingEdge is 
+# given as Entrez IDs.
+remapping_df <- unique(gene_info_df[,c(remap_col, 'ENTREZID')])
+rownames(remapping_df) <- remapping_df$ENTREZID
+
 q = apply(
     m,
     1,
     function(r){
+        leadingEdge <- remapping_df[r$leadingEdge, remap_col]
         list(
             pathway=r$pathway, 
             pval=r$pval, 
@@ -177,7 +193,7 @@ q = apply(
             NES=r$NES,
             size=r$size,
             ranks=r$ranks, 
-            leadingEdge=r$leadingEdge
+            leadingEdge=leadingEdge
         )
     }
 )
