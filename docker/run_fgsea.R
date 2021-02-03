@@ -74,6 +74,21 @@ dge_df$rnk = -log10(dge_df[,pval_col_num])*sign(dge_df[,fc_col_num])
 # subset the dataframe:
 dge_df = dge_df[c('symbol','rnk')]
 
+# check for infinite values originating from the log function. Some DGE programs (DESeq2)
+# can assign hard zeros to the p-value. Handle this by finding the largest finite values
+# and replacing the +/- Inf with that max PLUS a constant value. The 'rnk' column is 
+# simply used to rank the hits, so the value shouldn't matter as long as it preserves the
+# approprite order. We could be fancier and assign all the infinite values different ranks,
+# but we just assign them all the same here.
+finite_idx = is.finite(dge_df$rnk)
+min_finite = min(dge_df[finite_idx, 'rnk'])
+max_finite = max(dge_df[finite_idx, 'rnk'])
+neg_inf_idx = !finite_idx & (dge_df$rnk < 0)
+pos_inf_idx = !finite_idx & (dge_df$rnk > 0)
+delta = 5 # the offset to add/subtract
+dge_df[neg_inf_idx, 'rnk'] = min_finite - delta
+dge_df[pos_inf_idx, 'rnk'] = max_finite + delta
+
 # read the dataframe which contains the gene mapping info:
 gene_info_df = read.table(GENE_MAPPING_FILE)
 
