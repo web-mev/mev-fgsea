@@ -116,7 +116,7 @@ dge_df = merge(
 } else {
     dge_df['ENTREZID'] = rownames(dge_df)
 }
-print(head(dge_df))
+
 # If no remaining rows, error out
 if(dim(dge_df)[1] == 0){
     message('After mapping the gene identifiers, there were no remaining rows. Was the choice of gene identifier correct?')
@@ -199,6 +199,9 @@ q = apply(
     1,
     function(r){
         leadingEdge <- remapping_df[r$leadingEdge, remap_col]
+        if (length(leadingEdge) == 1){
+            leadingEdge = list(leadingEdge)
+        }
         list(
             pathway=r$pathway, 
             pval=r$pval, 
