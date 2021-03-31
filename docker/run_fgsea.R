@@ -192,6 +192,7 @@ m = merge(as.data.frame(fgseaRes), pathway_ranks, by.x='pathway', by.y=0)
 # want to re-map back to the original symbols, as the leadingEdge is 
 # given as Entrez IDs.
 remapping_df <- unique(gene_info_df[,c(remap_col, 'ENTREZID')])
+remapping_df <- distinct(remapping_df, ENTREZID, .keep_all=T)
 rownames(remapping_df) <- remapping_df$ENTREZID
 
 q = apply(
