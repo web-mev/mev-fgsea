@@ -22,6 +22,9 @@ GMT_PATHWAYS_FILE <- args[3]
 # the "type" of gene identifier
 GENE_ID_TYPE <- tolower(args[4])
 
+# Gene sets smaller than this will be removed. Defaults to 15
+MIN_SETSIZE = 15
+
 # change the working directory to co-locate with the counts file:
 working_dir <- dirname(DGE_RESULTS_FILE)
 setwd(working_dir)
@@ -141,11 +144,11 @@ stats = setNames(dge_df[,'rnk'], dge_df[,'ENTREZID'])
 pathways = gmtPathways(GMT_PATHWAYS_FILE)
 fgseaRes <- fgsea(pathways = pathways, 
                   stats    = stats,
-                  minSize  = 15,
+                  minSize  = MIN_SETSIZE,
                   maxSize  = 500)
 
 if (dim(fgseaRes)[1] == 0){
-    message('The table of gsea results was empty. Could be due to small gene sets not passing the minimum size threshold.')
+    message(sprintf('The table of gsea results was empty. Most commonly, this error can also be caused by choosing the incorrect gene identifiers or organism. However, this may also be due to small gene sets not passing the minimum size of %s genes.', MIN_SETSIZE))
     quit(status=1)
 }
 
