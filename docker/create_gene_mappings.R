@@ -9,8 +9,8 @@ if(organism == 'human'){
     db <- org.Hs.eg.db
     keys <- names(as.list(org.Hs.egALIAS2EG))
 } else if(organism == 'mouse'){
-    db <- org.Hs.eg.db
-    keys <- names(as.list(org.Hs.egALIAS2EG))
+    db <- org.Mm.eg.db
+    keys <- names(as.list(org.Mm.egALIAS2EG))
 } else {
     message('Unsupported organism choice.')
     quit(status=1)
