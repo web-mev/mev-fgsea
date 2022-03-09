@@ -34,6 +34,7 @@
     }, 
     "outputs": {
         "pathway_results": {
+            "required": true,
             "spec": {
                 "attribute_type": "DataResource", 
                 "resource_type": "JSON",
