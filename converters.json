@@ -1,5 +1,0 @@
-{
-  "dge_results":"api.converters.data_resource.LocalDockerSingleDataResourceConverter", 
-  "organism": "api.converters.basic_attributes.StringConverter",
-  "gene_id_choice": "api.converters.basic_attributes.StringConverter"
-}
