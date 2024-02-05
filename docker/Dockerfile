@@ -1,47 +1,25 @@
-From debian:stretch
+FROM mambaorg/micromamba
 
-SHELL ["/bin/bash", "-c"]
+# for building the conda env
+COPY --chown=$MAMBA_USER:$MAMBA_USER environment.yml /tmp/environment.yml
+# Build the environment based on the yml file
+RUN micromamba install -y -n base -f /tmp/environment.yml \
+  && micromamba clean --all --yes
 
-RUN apt-get update && \
-  apt-get install -y build-essential \
-    wget \
-    zlib1g-dev \
-    libcurl4-openssl-dev \
-    libncurses-dev \
-    libbz2-dev \
-    liblzma-dev \
-    libxml2-dev \
-    libopenblas-dev
-
-# Install all software under /opt/software:
-RUN mkdir -p /opt/software 
-RUN mkdir -p /opt/software/resources 
-
-# Get the miniconda installer script and run it in silent mode:
-RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /opt/software/miniconda.sh && \
-  bash /opt/software/miniconda.sh -b -p /opt/software/miniconda
-ENV PATH="/opt/software/miniconda/bin:${PATH}"
-
-# Install the R/bioc dependencies:
-ADD environment.yml /opt/software/
-RUN conda env create -f /opt/software/environment.yml
-
-# add to the PATH. Otherwise, conda can swallow return codes
-ENV PATH="/opt/software/miniconda/envs/fgsea_env/bin:${PATH}"
-
-# Now add the necessary scripts:
+USER root
+RUN mkdir -p /opt/resources && \
+  chmod a+r /opt/resources && \
+  chown $MAMBA_USER:$MAMBA_USER /opt/resources
 
 # Allows us to create the required files prior to committing the repo
-ADD create_required_files.sh /opt/software/
-ADD create_gene_mappings.R /opt/software/
-ADD create_pathway_databases.R /opt/software/
-RUN chmod +x /opt/software/create_required_files.sh && \
-  /opt/software/create_required_files.sh /opt/software/resources
+ADD create_required_files.sh /usr/local/bin/
+ADD create_gene_mappings.R /usr/local/bin/
+ADD create_pathway_databases.R /usr/local/bin/
+
+USER $MAMBA_USER
+ARG MAMBA_DOCKERFILE_ACTIVATE=1
+RUN /usr/local/bin/create_required_files.sh /opt/resources
 
 # the scripts which actually run the analysis
-ADD run.sh /opt/software
-RUN chmod +x /opt/software/run.sh
-ADD run_fgsea.R /opt/software/
-
-ENTRYPOINT ["/bin/bash"]
-
+ADD run.sh /usr/local/bin
+ADD run_fgsea.R /usr/local/bin/
