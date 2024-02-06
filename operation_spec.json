@@ -23,6 +23,16 @@
                 "options": ["Human", "Mouse"]
             }
         },
+        "gene_set_database": {
+            "description": "The gene set database. Each database contains multiple sets of genes relevant to a pathway, biological function, or other process.", 
+            "name": "Gene set database:", 
+            "required": true, 
+            "converter": "api.converters.basic_attributes.StringConverter",
+            "spec": {
+                "attribute_type": "OptionString",
+                "options": ["MSigDB Hallmark", "Reactome", "WikiPathways"]
+            }
+        },
         "gene_id_choice": {
             "description": "The type of identifier for your genes. If it's the \"common\" name, then choose \"Symbol\".", 
             "name": "Gene ID type:", 

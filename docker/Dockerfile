@@ -12,14 +12,27 @@ RUN mkdir -p /opt/resources && \
   chown $MAMBA_USER:$MAMBA_USER /opt/resources
 
 # Allows us to create the required files prior to committing the repo
-ADD create_required_files.sh /usr/local/bin/
 ADD create_gene_mappings.R /usr/local/bin/
-ADD create_pathway_databases.R /usr/local/bin/
 
 USER $MAMBA_USER
 ARG MAMBA_DOCKERFILE_ACTIVATE=1
-RUN /usr/local/bin/create_required_files.sh /opt/resources
+
+# Download msigdb database files for human and mouse:
+
+# Human:
+RUN curl ftp://ftp.broadinstitute.org/pub/gsea/msigdb/human/gene_sets/h.all.v2023.2.Hs.symbols.gmt > /opt/resources/h.all.v2023.2.Hs.symbols.gmt
+RUN curl ftp://ftp.broadinstitute.org/pub/gsea/msigdb/human/gene_sets/c2.cp.reactome.v2023.2.Hs.symbols.gmt > /opt/resources/c2.cp.reactome.v2023.2.Hs.symbols.gmt
+RUN curl ftp://ftp.broadinstitute.org/pub/gsea/msigdb/human/gene_sets/c2.cp.wikipathways.v2023.2.Hs.symbols.gmt > /opt/resources/c2.cp.wikipathways.v2023.2.Hs.symbols.gmt
+
+# Mouse
+RUN curl ftp://ftp.broadinstitute.org/pub/gsea/msigdb/mouse/gene_sets/mh.all.v2023.2.Mm.symbols.gmt > /opt/resources/mh.all.v2023.2.Mm.symbols.gmt
+RUN curl ftp://ftp.broadinstitute.org/pub/gsea/msigdb/mouse/gene_sets/m2.cp.reactome.v2023.2.Mm.symbols.gmt > /opt/resources/m2.cp.reactome.v2023.2.Mm.symbols.gmt
+RUN curl ftp://ftp.broadinstitute.org/pub/gsea/msigdb/mouse/gene_sets/m2.cp.wikipathways.v2023.2.Mm.symbols.gmt > /opt/resources/m2.cp.wikipathways.v2023.2.Mm.symbols.gmt
+
+# Create the gene mapping files:
+RUN Rscript /usr/local/bin/create_gene_mappings.R human /opt/resources/human_genes.tsv
+RUN Rscript /usr/local/bin/create_gene_mappings.R mouse /opt/resources/mouse_genes.tsv
 
 # the scripts which actually run the analysis
-ADD run.sh /usr/local/bin
+ADD run.sh /usr/local/bin/
 ADD run_fgsea.R /usr/local/bin/

@@ -16,17 +16,17 @@ if(organism == 'human'){
     quit(status=1)
 }
 # Create a mapping table. This will allow us to take the gene identifiers
-# and map them to EntrezIDs for the fgsea process.
-# ALIAS	ENSEMBL	SYMBOL	ENTREZID
-# 1	A1B	ENSG00000121410	A1BG	1
-# 2	A1B	ENSG00000172164	SNTB1	6641
-# 3	ABG	ENSG00000121410	A1BG	1
-# 4	GAB	ENSG00000121410	A1BG	1
-# 5	HYST2477	ENSG00000121410	A1BG	1
+# and map them to symbols for the fgsea process.
+# "ALIAS"	"ENSEMBL"	"SYMBOL"	"REFSEQ"
+# "1"	"A1B"	"ENSG00000121410"	"A1BG"	"NM_130786"
+# "2"	"A1B"	"ENSG00000121410"	"A1BG"	"NP_570602"
+# "3"	"A1B"	"ENSG00000172164"	"SNTB1"	"NM_021021"
+# "4"	"A1B"	"ENSG00000172164"	"SNTB1"	"NP_066301"
+# "5"	"A1B"	"ENSG00000172164"	"SNTB1"	"XM_011517239"
 gene_mappings <- select(
     db, 
     key=keys, 
-    columns=c('ALIAS', 'ENSEMBL', 'SYMBOL', 'ENTREZID'), 
+    columns=c('ALIAS', 'ENSEMBL', 'SYMBOL', 'REFSEQ'), 
     keytype="ALIAS"
 )
 write.table(gene_mappings, output_filename, sep='\t', quote=T)

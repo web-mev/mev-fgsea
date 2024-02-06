@@ -93,31 +93,15 @@ dge_df[neg_inf_idx, 'rnk'] = min_finite - delta
 dge_df[pos_inf_idx, 'rnk'] = max_finite + delta
 
 # read the dataframe which contains the gene mapping info:
-gene_info_df = read.table(GENE_MAPPING_FILE)
-
-
-if(GENE_ID_TYPE == 'symbol'){
-    # note that when we map back at the end, we use the symbol column
-    # since the many:1 mapping of alias to entrez causes problems.    
-    chosen_col = 'ALIAS'
-    remap_col = 'SYMBOL'
-} else if(GENE_ID_TYPE == 'ensembl'){
-    chosen_col = 'ENSEMBL'
-    remap_col = 'ENSEMBL'
-} else if(GENE_ID_TYPE == 'entrez'){
-    chosen_col = 'ENTREZID'
-    remap_col = 'ENTREZID'
-} else {
-    message('Could not understand which gene identifier to map from.')
-    quit(status=1)
-}
+gene_info_df = read.table(GENE_MAPPING_FILE, sep='\t')
+print(head(gene_info_df))
 
 # merge to keep only those where we have a mapping:
-if (chosen_col != 'ENTREZID') {
+if (GENE_ID_TYPE != 'symbol') {
 dge_df = merge(
-    dge_df, gene_info_df[,c(chosen_col, 'ENTREZID')], by.x=0, by.y=chosen_col)
+    dge_df, gene_info_df[,c(toupper(GENE_ID_TYPE), 'SYMBOL')], by.x=0, by.y=toupper(GENE_ID_TYPE))
 } else {
-    dge_df['ENTREZID'] = rownames(dge_df)
+    dge_df['SYMBOL'] = rownames(dge_df)
 }
 
 # If no remaining rows, error out
@@ -126,20 +110,21 @@ if(dim(dge_df)[1] == 0){
     quit(status=1)
 }
 
-dge_df = dge_df[,c('symbol', 'rnk', 'ENTREZID')]
+dge_df = dge_df[,c('symbol', 'rnk', 'SYMBOL')]
 
-# drop those without an entrez ID
-dge_df <- dge_df[!unlist(lapply(dge_df$ENTREZID, is.null)),]
+# drop those without an ID
+dge_df <- dge_df[!unlist(lapply(dge_df$SYMBOL, is.null)),]
 
-# remove duplicate entrez ID:
-dge_df <- distinct(dge_df, ENTREZID, .keep_all=T)
+# remove duplicates:
+dge_df <- distinct(dge_df, SYMBOL, .keep_all=T)
 
 # list of the stats named by the entrez ID
 # e.g.:
 # > head(stats)
-#           1      503538       29974           2      144571      144568 
-# -8.73494743  0.09858084 -0.19662542  0.07469280  1.21432723  0.98991642
-stats = setNames(dge_df[,'rnk'], dge_df[,'ENTREZID'])
+#      TSPAN6        TNMD        DPM1       SCYL3       FIRRM         FGR 
+# -31.7067988  -0.3059057 -91.4904801  33.8878384 312.2079695   0.2784677 
+stats = setNames(dge_df[,'rnk'], dge_df[,'SYMBOL'])
+print(head(stats))
 
 pathways = gmtPathways(GMT_PATHWAYS_FILE)
 fgseaRes <- fgsea(pathways = pathways, 
@@ -192,17 +177,17 @@ m = merge(as.data.frame(fgseaRes), pathway_ranks, by.x='pathway', by.y=0)
 # the ranks and leadingEdge columns are exported strangely to JSON
 # if we use `m` directly. Create a list structure to use for export.
 
-# want to re-map back to the original symbols, as the leadingEdge is 
-# given as Entrez IDs.
-remapping_df <- unique(gene_info_df[,c(remap_col, 'ENTREZID')])
-remapping_df <- distinct(remapping_df, ENTREZID, .keep_all=T)
-rownames(remapping_df) <- remapping_df$ENTREZID
+# want to re-map back to the original identifier, as the leadingEdge is 
+# given as symbols.
+remapping_df <- unique(gene_info_df[,c(toupper(GENE_ID_TYPE), 'SYMBOL')])
+remapping_df <- distinct(remapping_df, SYMBOL, .keep_all=T)
+rownames(remapping_df) <- remapping_df$SYMBOL
 
 q = apply(
     m,
     1,
     function(r){
-        leadingEdge <- remapping_df[r$leadingEdge, remap_col]
+        leadingEdge <- remapping_df[r$leadingEdge, toupper(GENE_ID_TYPE)]
         if (length(leadingEdge) == 1){
             leadingEdge = list(leadingEdge)
         }
