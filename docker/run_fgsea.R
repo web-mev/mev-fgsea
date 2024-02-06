@@ -94,7 +94,6 @@ dge_df[pos_inf_idx, 'rnk'] = max_finite + delta
 
 # read the dataframe which contains the gene mapping info:
 gene_info_df = read.table(GENE_MAPPING_FILE, sep='\t')
-print(head(gene_info_df))
 
 # merge to keep only those where we have a mapping:
 if (GENE_ID_TYPE != 'symbol') {
@@ -124,7 +123,6 @@ dge_df <- distinct(dge_df, SYMBOL, .keep_all=T)
 #      TSPAN6        TNMD        DPM1       SCYL3       FIRRM         FGR 
 # -31.7067988  -0.3059057 -91.4904801  33.8878384 312.2079695   0.2784677 
 stats = setNames(dge_df[,'rnk'], dge_df[,'SYMBOL'])
-print(head(stats))
 
 pathways = gmtPathways(GMT_PATHWAYS_FILE)
 fgseaRes <- fgsea(pathways = pathways, 

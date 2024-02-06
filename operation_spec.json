@@ -27,7 +27,7 @@
             "description": "The gene set database. Each database contains multiple sets of genes relevant to a pathway, biological function, or other process.", 
             "name": "Gene set database:", 
             "required": true, 
-            "converter": "api.converters.basic_attributes.StringConverter",
+            "converter": "api.converters.basic_attributes.UnrestrictedStringConverter",
             "spec": {
                 "attribute_type": "OptionString",
                 "options": ["MSigDB Hallmark", "Reactome", "WikiPathways"]
