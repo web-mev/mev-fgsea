@@ -10,3 +10,4 @@ dependencies:
   - bioconductor-reactome.db=1.86.2
   - r-base=4.3.2
   - r-data.table=1.14.10
+  - r-dplyr=1.1.4
