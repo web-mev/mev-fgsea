@@ -19,7 +19,7 @@ MOUSE_SETS_MAP["WikiPathways"]="/opt/resources/m2.cp.wikipathways.v2023.2.Mm.sym
 if [ $ORGANISM = "Human" ]
 then
     GENE_SET_FILE=${HUMAN_SETS_MAP[${GENE_SETS_DB}]}
-    Rscript /opt/software/run_fgsea.R \
+    Rscript /usr/local/bin/run_fgsea.R \
         $DGE_FILE \
         /opt/resources/human_genes.tsv \
         $GENE_SET_FILE \
@@ -27,7 +27,7 @@ then
 elif [ $ORGANISM = "Mouse" ]
 then
     GENE_SET_FILE=${MOUSE_SETS_MAP[${GENE_SETS_DB}]}
-    Rscript /opt/software/run_fgsea.R \
+    Rscript /usr/local/bin/run_fgsea.R \
         $DGE_FILE \
         /opt/resources/mouse_genes.tsv \
         $GENE_SET_FILE \

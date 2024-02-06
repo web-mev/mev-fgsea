@@ -34,13 +34,13 @@
             }
         },
         "gene_id_choice": {
-            "description": "The type of identifier for your genes. If it's the \"common\" name, then choose \"Symbol\".", 
+            "description": "The type of identifier for the genes in your differential expression file. If it's the \"common\" name (like TP53, BCL2), then choose \"Symbol\".", 
             "name": "Gene ID type:", 
             "required": true,
             "converter": "api.converters.basic_attributes.StringConverter", 
             "spec": {
                 "attribute_type": "OptionString",
-                "options": ["Symbol", "Entrez", "Ensembl"],
+                "options": ["Symbol", "Refseq", "Ensembl"],
                 "default": "Symbol"
             }
         }
