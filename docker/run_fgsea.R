@@ -205,7 +205,7 @@ q = apply(
 
 # reformat the table as a json string and write to file
 results_json_str <- toJSON(q)
-output_filename = 'fgsea_results_demo.json'
+output_filename = 'fgsea_results.json'
 results_json_file <- paste(working_dir, output_filename, sep='/')
 write(results_json_str, results_json_file)
 

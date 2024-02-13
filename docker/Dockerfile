@@ -23,11 +23,21 @@ ARG MAMBA_DOCKERFILE_ACTIVATE=1
 RUN curl ftp://ftp.broadinstitute.org/pub/gsea/msigdb/human/gene_sets/h.all.v2023.2.Hs.symbols.gmt > /opt/resources/h.all.v2023.2.Hs.symbols.gmt
 RUN curl ftp://ftp.broadinstitute.org/pub/gsea/msigdb/human/gene_sets/c2.cp.reactome.v2023.2.Hs.symbols.gmt > /opt/resources/c2.cp.reactome.v2023.2.Hs.symbols.gmt
 RUN curl ftp://ftp.broadinstitute.org/pub/gsea/msigdb/human/gene_sets/c2.cp.wikipathways.v2023.2.Hs.symbols.gmt > /opt/resources/c2.cp.wikipathways.v2023.2.Hs.symbols.gmt
+RUN curl ftp://ftp.broadinstitute.org/pub/gsea/msigdb/human/gene_sets/c5.go.bp.v2023.2.Hs.symbols.gmt > /opt/resources/c5.go.bp.v2023.2.Hs.symbols.gmt
+RUN curl ftp://ftp.broadinstitute.org/pub/gsea/msigdb/human/gene_sets/c5.go.mf.v2023.2.Hs.symbols.gmt > /opt/resources/c5.go.mf.v2023.2.Hs.symbols.gmt
+RUN curl ftp://ftp.broadinstitute.org/pub/gsea/msigdb/human/gene_sets/c5.go.cc.v2023.2.Hs.symbols.gmt > /opt/resources/c5.go.cc.v2023.2.Hs.symbols.gmt
+RUN curl ftp://ftp.broadinstitute.org/pub/gsea/msigdb/human/gene_sets/c6.all.v2023.2.Hs.symbols.gmt > /opt/resources/c6.all.v2023.2.Hs.symbols.gmt
+RUN curl ftp://ftp.broadinstitute.org/pub/gsea/msigdb/human/gene_sets/c7.immunesigdb.v2023.2.Hs.symbols.gmt > /opt/resources/c7.immunesigdb.v2023.2.Hs.symbols.gmt
+
 
 # Mouse
 RUN curl ftp://ftp.broadinstitute.org/pub/gsea/msigdb/mouse/gene_sets/mh.all.v2023.2.Mm.symbols.gmt > /opt/resources/mh.all.v2023.2.Mm.symbols.gmt
 RUN curl ftp://ftp.broadinstitute.org/pub/gsea/msigdb/mouse/gene_sets/m2.cp.reactome.v2023.2.Mm.symbols.gmt > /opt/resources/m2.cp.reactome.v2023.2.Mm.symbols.gmt
 RUN curl ftp://ftp.broadinstitute.org/pub/gsea/msigdb/mouse/gene_sets/m2.cp.wikipathways.v2023.2.Mm.symbols.gmt > /opt/resources/m2.cp.wikipathways.v2023.2.Mm.symbols.gmt
+RUN curl ftp://ftp.broadinstitute.org/pub/gsea/msigdb/mouse/gene_sets/m5.go.bp.v2023.2.Mm.symbols.gmt > /opt/resources/m5.go.bp.v2023.2.Mm.symbols.gmt
+RUN curl ftp://ftp.broadinstitute.org/pub/gsea/msigdb/mouse/gene_sets/m5.go.mf.v2023.2.Mm.symbols.gmt > /opt/resources/m5.go.mf.v2023.2.Mm.symbols.gmt
+RUN curl ftp://ftp.broadinstitute.org/pub/gsea/msigdb/mouse/gene_sets/m5.go.cc.v2023.2.Mm.symbols.gmt > /opt/resources/m5.go.cc.v2023.2.Mm.symbols.gmt
+
 
 # Create the gene mapping files:
 RUN Rscript /usr/local/bin/create_gene_mappings.R human /opt/resources/human_genes.tsv

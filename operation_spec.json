@@ -30,7 +30,7 @@
             "converter": "api.converters.basic_attributes.UnrestrictedStringConverter",
             "spec": {
                 "attribute_type": "OptionString",
-                "options": ["MSigDB Hallmark", "Reactome", "WikiPathways"]
+                "options": ["MSigDB Hallmark", "Reactome", "WikiPathways", "Ontology - Biological process", "Ontology - Molecular function", "Ontology - Cellular component", "(Human only) Oncogenic signatures", "(Human only) ImmuneSigDB"]
             }
         },
         "gene_id_choice": {
