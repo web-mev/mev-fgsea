@@ -6,7 +6,7 @@
             "description": "A table of diffential expression results. Must have \"logFC\" and \"pval\" columns to rank the hits.", 
             "name": "Differential expression results:", 
             "required": true, 
-            "converter": "api.converters.data_resource.LocalDockerSingleDataResourceConverter",
+            "converter": "api.converters.data_resource.ECSSingleDataResourceConverter",
             "spec": {
                 "attribute_type": "DataResource", 
                 "resource_type": "FT", 
@@ -48,7 +48,7 @@
     "outputs": {
         "pathway_results": {
             "required": true,
-            "converter": "api.converters.data_resource.LocalDockerSingleDataResourceConverter",
+            "converter": "api.converters.data_resource.ECSSingleDataResourceConverter",
             "spec": {
                 "attribute_type": "DataResource", 
                 "resource_type": "JSON",
@@ -56,6 +56,6 @@
             }
         }
     }, 
-    "mode": "local_docker",
+    "mode": "ecs",
     "workspace_operation": true
 }
